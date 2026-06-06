@@ -4,7 +4,7 @@
 
 -- Table 1: eNumber → DID mapping (Don is building this)
 -- If Don has already created this table, skip or merge as needed.
-CREATE TABLE IF NOT EXISTS enumber_did_mapping (
+CREATE TABLE IF NOT EXISTS enumbers (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   enumber       TEXT UNIQUE NOT NULL,
   did           TEXT NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS enumber_did_mapping (
 CREATE TABLE IF NOT EXISTS kyc_verifications (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   verification_id  UUID UNIQUE NOT NULL,
-  enumber          TEXT NOT NULL REFERENCES enumber_did_mapping(enumber),
+  enumber          TEXT NOT NULL REFERENCES enumbers(enumber),
   did              TEXT NOT NULL,
   country          TEXT NOT NULL,
   id_type          TEXT NOT NULL,
@@ -31,19 +31,19 @@ CREATE TABLE IF NOT EXISTS kyc_verifications (
 -- Indexes for fast lookups
 CREATE INDEX IF NOT EXISTS idx_kyc_enumber ON kyc_verifications(enumber);
 CREATE INDEX IF NOT EXISTS idx_kyc_did ON kyc_verifications(did);
-CREATE INDEX IF NOT EXISTS idx_enumber_did ON enumber_did_mapping(enumber);
+CREATE INDEX IF NOT EXISTS idx_enumber_did ON enumbers(enumber);
 
 -- Row Level Security: enable on both tables
-ALTER TABLE enumber_did_mapping ENABLE ROW LEVEL SECURITY;
+ALTER TABLE enumbers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kyc_verifications ENABLE ROW LEVEL SECURITY;
 
 -- Only the service role (your backend) can read/write these tables.
 -- No public access. No anon access.
-CREATE POLICY "service_role_only_mapping" ON enumber_did_mapping
+CREATE POLICY "service_role_only_mapping" ON enumbers
   USING (auth.role() = 'service_role');
 
 CREATE POLICY "service_role_only_kyc" ON kyc_verifications
   USING (auth.role() = 'service_role');
 
 -- ─── Done. ────────────────────────────────────────────────────────────────────
--- Verify by running: SELECT * FROM enumber_did_mapping LIMIT 1;
+-- Verify by running: SELECT * FROM enumbers LIMIT 1;
