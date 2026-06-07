@@ -5,10 +5,12 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 
 import verifyRouter from './routes/verify.js';
+import keysRouter from './routes/keys.js';
 import identityRouter from './routes/identity.js';
 import credentialRouter from './routes/credential.js';
 import healthRouter from './routes/health.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { trackUsage } from './middleware/usageTracker.js';
 import { requestLogger } from './middleware/requestLogger.js';
 
 const app = express();
@@ -20,6 +22,7 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(requestLogger);
+app.use(trackUsage);
 
 app.use(`/v1/*`, rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -31,6 +34,7 @@ app.use('/health', healthRouter);
 app.use('/v1/verify', verifyRouter);
 app.use('/v1/credential', credentialRouter);
 app.use('/v1/identity', identityRouter);
+app.use('/v1/keys', keysRouter);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found.' });
