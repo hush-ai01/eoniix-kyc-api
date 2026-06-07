@@ -7,4 +7,5 @@ supabase/.temp/
 
 node_modules/
 *.zip
-supabase/.temp/
+supabase/.temp/.env.save
+.env.save
