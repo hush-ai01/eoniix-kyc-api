@@ -5,6 +5,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 
 import verifyRouter from './routes/verify.js';
+import identityRouter from './routes/identity.js';
 import credentialRouter from './routes/credential.js';
 import healthRouter from './routes/health.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -29,6 +30,7 @@ app.use(`/v1/*`, rateLimit({
 app.use('/health', healthRouter);
 app.use('/v1/verify', verifyRouter);
 app.use('/v1/credential', credentialRouter);
+app.use('/v1/identity', identityRouter);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found.' });
