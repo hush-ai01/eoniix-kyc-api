@@ -40,7 +40,10 @@ export async function storeVerificationRecord({
       id_type: idType,
       verified_at: verifiedAt,
       aml_clear: amlClear,
-      credential_id: credentialId
+      credential_id: credentialId,
+      verification_level: verificationLevel || 1,
+      reuse_count: 0,
+      last_presented: new Date().toISOString()
     });
 
   if (error) throw new Error(`Supabase insert failed: ${error.message}`);
@@ -49,7 +52,10 @@ export async function storeVerificationRecord({
 export async function updateCredentialId(verificationId, credentialId) {
   const { error } = await supabase
     .from('kyc_verifications')
-    .update({ credential_id: credentialId })
+    .update({ credential_id: credentialId,
+      verification_level: verificationLevel || 1,
+      reuse_count: 0,
+      last_presented: new Date().toISOString() })
     .eq('verification_id', verificationId);
 
   if (error) throw new Error(`Supabase update failed: ${error.message}`);

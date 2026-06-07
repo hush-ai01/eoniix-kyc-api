@@ -136,6 +136,7 @@ router.post('/', authenticate, async (req, res, next) => {
       country,
       idType,
       verifiedAt,
+      verificationLevel: 1,
       amlClear: amlResult.clear,
       credentialId
     });
