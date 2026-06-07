@@ -60,3 +60,31 @@ export async function updateCredentialId(verificationId, credentialId) {
 
   if (error) throw new Error(`Supabase update failed: ${error.message}`);
 }
+
+export async function presentCredential(enumber) {
+  const { data, error } = await supabase
+    .from('kyc_verifications')
+    .select('credential_id, verification_level, aml_clear, verified_at, reuse_count')
+    .eq('enumber', enumber)
+    .maybeSingle();
+
+  if (error) throw new Error(`Supabase lookup failed: ${error.message}`);
+  if (!data) return null;
+
+  await supabase
+    .from('kyc_verifications')
+    .update({
+      reuse_count: (data.reuse_count || 0) + 1,
+      last_presented: new Date().toISOString()
+    })
+    .eq('enumber', enumber);
+
+  return {
+    verified: true,
+    credentialId: data.credential_id,
+    verificationLevel: data.verification_level,
+    amlClear: data.aml_clear,
+    verifiedAt: data.verified_at,
+    reuseCount: (data.reuse_count || 0) + 1
+  };
+}
