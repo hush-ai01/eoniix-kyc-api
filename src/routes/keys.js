@@ -20,7 +20,7 @@ router.post('/generate', async (req, res, next) => {
       tier
     });
 
-    if (error) throw new Error(`Failed to create API key: ${error.message}`);
+    console.error('SUPABASE ERROR:', JSON.stringify(error)); if (error) throw new Error(`Failed to create API key: ${error.message}`);
 
     res.status(201).json({
       apiKey,
