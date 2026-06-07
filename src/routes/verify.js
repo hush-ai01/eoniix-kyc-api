@@ -39,13 +39,14 @@ import { verifyGovernmentId, verifyBiometric, screenAML } from '../services/doja
 import { getDIDByENumber, storeVerificationRecord, updateCredentialId, getExistingVerification } from '../services/supabaseService.js';
 import { issueKYCCredential } from '../services/polygonIdService.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { getProvider } from '../services/providerRouter.js';
 
 const router = express.Router();
 
 // Input validation schema
 const verifySchema = Joi.object({
   eNumber:        Joi.string().required(),
-  country:        Joi.string().valid('NG', 'ZA', 'KE', 'GH', 'UG', 'ZM').required(),
+  country:        Joi.string().min(2).max(2).uppercase().required(),
   idType:         Joi.string().valid('BVN', 'NIN', 'NATIONAL_ID', 'PASSPORT', 'DRIVERS_LICENSE').required(),
   idNumber:       Joi.string().required(),
   selfieBase64:   Joi.string().required(),
@@ -61,6 +62,7 @@ router.post('/', authenticate, async (req, res, next) => {
     }
 
     const { eNumber, country, idType, idNumber, selfieBase64, idImageBase64 } = value;
+    const provider = getProvider(country);
 
     // ── 2. Check for existing verification (avoid duplicate charges) ─────────
     const existing = await getExistingVerification(eNumber);
