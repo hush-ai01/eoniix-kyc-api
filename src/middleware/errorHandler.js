@@ -17,5 +17,6 @@ export function errorHandler(err, req, res, next) {
   }
 
   // Unknown errors — don't leak internals
-  res.status(500).json({ error: 'Internal server error.' });
+  console.error('[500 ERROR]', err);
+res.status(500).json({ error: 'Internal server error.' });
 }
