@@ -27,6 +27,7 @@ app.use(trackUsage);
 app.use(`/v1/*`, rateLimit({
   windowMs: 15 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
+  keyGenerator: (req) => req.headers['x-api-key'] || req.ip,
   message: { error: 'Too many requests. Please try again later.' }
 }));
 
