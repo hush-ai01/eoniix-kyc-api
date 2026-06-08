@@ -9,8 +9,8 @@ export async function getDIDByENumber(eNumber) {
   const { data, error } = await supabase
     .from('enumbers')
     .select('did')
-    .eq('e_number', eNumber)
-    .single();
+    .eq('enumber', eNumber)
+    .maybeSingle();
 
   if (error || !data?.did) return null;
   return data.did;
@@ -20,8 +20,8 @@ export async function getExistingVerification(eNumber) {
   const { data } = await supabase
     .from('kyc_verifications')
     .select('*')
-    .eq('e_number', eNumber)
-    .single();
+    .eq('enumber', eNumber)
+    .maybeSingle();
 
   return data || null;
 }
@@ -33,7 +33,7 @@ export async function storeVerificationRecord({
   const { error } = await supabase
     .from('kyc_verifications')
     .insert({
-      e_number: eNumber,
+      enumber: eNumber,
       did,
       verification_id: verificationId,
       country,

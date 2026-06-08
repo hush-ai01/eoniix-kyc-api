@@ -20,7 +20,7 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(requestLogger);
 
-app.use(rateLimit({
+app.use('/v1', rateLimit({
   windowMs: 15 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
   message: { error: 'Too many requests. Please try again later.' }

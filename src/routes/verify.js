@@ -64,7 +64,7 @@ router.post('/', authenticate, async (req, res, next) => {
 
     // ── 2. Check for existing verification (avoid duplicate charges) ─────────
     const existing = await getExistingVerification(eNumber);
-    if (existing?.credentialId) {
+    if (existing?.credential_id) {
       return res.json({
         status: 'already_verified',
         eNumber,
