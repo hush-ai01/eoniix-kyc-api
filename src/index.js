@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import verifyRouter from './routes/verify.js';
 import credentialRouter from './routes/credential.js';
 import healthRouter from './routes/health.js';
+import logger from './utils/logger.js';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -40,9 +41,9 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`\n🟢 Eoniix KYC API running on port ${PORT}`);
-  console.log(`   Environment: ${process.env.NODE_ENV}`);
-  console.log(`   Dojah mode:  ${process.env.DOJAH_ENV}\n`);
+  logger.info('Sove Identity API running on port ' + PORT);
+  
+  
 });
 
 export default app;
