@@ -160,3 +160,41 @@ router.post('/', authenticate, async (req, res, next) => {
 });
 
 export default router;
+
+/**
+ * @openapi
+ * /v1/verify:
+ *   post:
+ *     summary: Verify a user's identity
+ *     description: Orchestrates government ID verification, biometric liveness check, AML screening, and issues a portable Polygon ID credential.
+ *     tags: [Verification]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/VerifyRequest'
+ *     responses:
+ *       200:
+ *         description: User successfully verified
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/VerifyResponse'
+ *       401:
+ *         description: Invalid or missing API key
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: eNumber not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ */

@@ -7,6 +7,8 @@ import rateLimit from 'express-rate-limit';
 import verifyRouter from './routes/verify.js';
 import credentialRouter from './routes/credential.js';
 import healthRouter from './routes/health.js';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './swagger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 
@@ -26,6 +28,7 @@ app.use('/v1', rateLimit({
   message: { error: 'Too many requests. Please try again later.' }
 }));
 
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/health', healthRouter);
 app.use('/v1/verify', verifyRouter);
 app.use('/v1/credential', credentialRouter);
