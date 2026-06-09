@@ -10,6 +10,7 @@ import healthRouter from './routes/health.js';
 import logger from './utils/logger.js';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger.js';
+import { rateLimitPerKey } from './middleware/rateLimitPerKey.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 
@@ -31,6 +32,7 @@ app.use('/v1', rateLimit({
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/health', healthRouter);
+app.use('/v1', rateLimitPerKey);
 app.use('/v1/verify', verifyRouter);
 app.use('/v1/credential', credentialRouter);
 
