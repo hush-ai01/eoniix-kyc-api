@@ -36,6 +36,17 @@ app.use('/v1', rateLimitPerKey);
 app.use('/v1/verify', verifyRouter);
 app.use('/v1/credential', credentialRouter);
 
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Sove Identity API',
+    version: '1.0.0',
+    description: 'Web3-native KYC verification with portable on-chain credentials. Built for African fintechs.',
+    docs: '/docs',
+    health: '/health',
+    contact: 'hello@sove.io'
+  });
+});
+
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found.' });
 });
