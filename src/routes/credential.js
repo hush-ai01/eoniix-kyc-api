@@ -2,7 +2,7 @@
 // GET /v1/credential/:credentialId — fetch credential status and ZK proof URL
 
 import express from 'express';
-import { getCredentialStatus } from '../services/polygonIdService.js';
+import { getCredentialStatus } from '../services/solanaService.js';
 import { authenticate } from '../middleware/authenticate.js';
 
 const router = express.Router();

@@ -37,7 +37,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { verifyGovernmentId, verifyBiometric, screenAML } from '../services/dojahService.js';
 import { getDIDByENumber, storeVerificationRecord, updateCredentialId, getExistingVerification } from '../services/supabaseService.js';
-import { issueKYCCredential } from '../services/polygonIdService.js';
+import { issueKYCCredential } from '../services/solanaService.js';
 import { authenticate } from '../middleware/authenticate.js';
 
 const router = express.Router();
