@@ -22,8 +22,8 @@ supabase secrets set ISSUER_API_AUTH_PASSWORD="<issuer-api-password>"
 Optional DID configuration:
 
 ```bash
-supabase secrets set ISSUER_DID_METHOD="polygonid"
-supabase secrets set ISSUER_DID_BLOCKCHAIN="polygon"
+supabase secrets set ISSUER_DID_METHOD="solana"
+supabase secrets set ISSUER_DID_BLOCKCHAIN="solana"
 supabase secrets set ISSUER_DID_NETWORK="amoy"
 supabase secrets set ISSUER_DID_KEY_TYPE="BJJ"
 supabase secrets set ISSUER_CREDENTIAL_STATUS_TYPE="Iden3commRevocationStatusV1.0"
@@ -66,7 +66,7 @@ Example response:
 
 ```json
 {
-  "did": "did:polygonid:polygon:amoy:...",
+  "did": "did:solana:devnet:...",
   "created": true
 }
 ```

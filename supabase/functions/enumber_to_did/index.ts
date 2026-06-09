@@ -114,8 +114,8 @@ function createIdentityPayload(displayName: string): Record<string, unknown> {
 
   return {
     didMetadata: {
-      method: optionalEnv("ISSUER_DID_METHOD", "polygonid"),
-      blockchain: optionalEnv("ISSUER_DID_BLOCKCHAIN", "polygon"),
+      method: optionalEnv("ISSUER_DID_METHOD", "solana"),
+      blockchain: optionalEnv("ISSUER_DID_BLOCKCHAIN", "solana"),
       network: optionalEnv("ISSUER_DID_NETWORK", "amoy"),
       type: optionalEnv("ISSUER_DID_KEY_TYPE", "BJJ"),
     },
