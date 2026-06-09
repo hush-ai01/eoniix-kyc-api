@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "test": "node --test"
+    "test": "node --test src/tests/verify.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
