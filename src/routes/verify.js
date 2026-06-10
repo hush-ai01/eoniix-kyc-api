@@ -6,7 +6,7 @@
  * 2. Government ID verification (Dojah)
  * 3. Biometric liveness check (Dojah)
  * 4. AML screening (Dojah)
- * 5. Credential issuance (Polygon ID)
+ * 5. Credential issuance (Solana Attestation Service)
  * 6. Record storage (Supabase)
  *
  * Request body:

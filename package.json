@@ -10,7 +10,10 @@
     "test": "node --test src/tests/verify.test.js"
   },
   "dependencies": {
+    "@solana/codecs-core": "^5.5.1",
+    "@solana/codecs-data-structures": "^5.5.1",
     "@solana/keys": "^6.9.0",
+    "@solana/kit": "^6.9.0",
     "@solana/signers": "^6.9.0",
     "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",

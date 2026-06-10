@@ -13,6 +13,7 @@ import { swaggerSpec } from './swagger.js';
 import { rateLimitPerKey } from './middleware/rateLimitPerKey.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
+import arcRouter from './routes/arc.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,7 +36,7 @@ app.use('/health', healthRouter);
 app.use('/v1', rateLimitPerKey);
 app.use('/v1/verify', verifyRouter);
 app.use('/v1/credential', credentialRouter);
-
+app.use('/v1/arc', arcRouter);
 app.get('/', (req, res) => {
   res.json({
     name: 'Sove Identity API',
