@@ -1,6 +1,8 @@
 import express from 'express';
+import { authenticate, requireScope } from '../middleware/authenticate.js';
 import { v4 as uuidv4 } from 'uuid';
 const router = express.Router();
+router.use(authenticate);
 
 import { determineThreshold, buildPayload, hashPayload, encryptPayload, signPayload, lookupVerifiedUser, storeTransmission, updateTransmissionStatus, getTransmission } from '../services/arcService.js';
 

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'https://eoniix-kyc-api.onrender.com';
 const API_KEY = 'eoniix-test-key-123';
 
 const headers = {
