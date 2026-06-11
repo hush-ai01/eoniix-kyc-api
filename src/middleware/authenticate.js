@@ -25,17 +25,23 @@ async function lookupApiKey(rawKey) {
     .single();
 
   if (error || !data) return null;
+  if (!data.key_hash) return null;
 
   const storedHash = Buffer.isBuffer(data.key_hash)
     ? data.key_hash.toString('hex')
-    : data.key_hash;
+    : String(data.key_hash);
 
-  const valid = crypto.timingSafeEqual(
-    Buffer.from(hash, 'hex'),
-    Buffer.from(storedHash, 'hex')
-  );
+  if (storedHash.length !== hash.length) return null;
 
-  if (!valid) return null;
+  try {
+    const valid = crypto.timingSafeEqual(
+      Buffer.from(hash, 'hex'),
+      Buffer.from(storedHash, 'hex')
+    );
+    if (!valid) return null;
+  } catch {
+    return null;
+  }
 
   return data;
 }
