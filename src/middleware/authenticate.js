@@ -13,6 +13,14 @@ function hashKey(rawKey) {
     .digest('hex');
 }
 
+function decodeStoredHash(raw) {
+  if (!raw) return null;
+  if (Buffer.isBuffer(raw)) return raw.toString('hex');
+  const s = String(raw);
+  if (s.startsWith('\\x')) return s.slice(2);
+  return s;
+}
+
 async function lookupApiKey(rawKey) {
   const prefix = rawKey.slice(0, 8);
   const hash = hashKey(rawKey);
@@ -25,13 +33,9 @@ async function lookupApiKey(rawKey) {
     .single();
 
   if (error || !data) return null;
-  if (!data.key_hash) return null;
 
-  const storedHash = Buffer.isBuffer(data.key_hash)
-    ? data.key_hash.toString('hex')
-    : String(data.key_hash);
-
-  if (storedHash.length !== hash.length) return null;
+  const storedHash = decodeStoredHash(data.key_hash);
+  if (!storedHash || storedHash.length !== hash.length) return null;
 
   try {
     const valid = crypto.timingSafeEqual(
@@ -68,10 +72,10 @@ export async function authenticate(req, res, next) {
   req.partnerId = keyRecord.business_name || null;
   req.scopes = keyRecord.scopes || [];
 
-  await supabase
-    .from('api_keys')
+  supabase.from('api_keys')
     .update({ last_used: new Date().toISOString() })
-    .eq('id', keyRecord.id);
+    .eq('id', keyRecord.id)
+    .then(() => {});
 
   next();
 }
