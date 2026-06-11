@@ -1,0 +1,13 @@
+{
+  "name": "sove-arc",
+  "version": "0.1.0",
+  "description": "Official SDK for the Sove Arc Travel Rule API",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test src/index.test.js"
+  },
+  "keywords": ["sove", "arc", "travel-rule", "fatf", "vasp", "casp", "africa"],
+  "author": "Sove by Eoniix",
+  "license": "MIT"
+}
