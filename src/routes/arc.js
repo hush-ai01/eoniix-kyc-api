@@ -9,7 +9,7 @@ import { getCaspById, getCaspByWallet, registerCasp } from '../services/caspRegi
 // POST /v1/arc/send
 router.post('/send', async (req, res) => {
   try {
-    const { originatorENumber, originatorWallet, beneficiaryWallet, beneficiaryCaspId, amountZar, chainTransactionRef } = req.body;
+    const { originatorENumber, originatorWallet, beneficiaryWallet, beneficiaryCaspId, amountZar, chainTransactionRef, originatorCaspId } = req.body;
 
     if (!originatorENumber || !originatorWallet || !beneficiaryWallet || !beneficiaryCaspId || !amountZar) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -34,7 +34,7 @@ router.post('/send', async (req, res) => {
 
     await storeTransmission({
       arcTransactionId,
-      originatorCaspId: req.caspId,
+      originatorCaspId: req.body.originatorCaspId,
       beneficiaryCaspId,
       originatorEnumber: originatorENumber,
       originatorWallet,
