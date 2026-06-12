@@ -53,7 +53,7 @@ async function lookupVerifiedUser(enumber) {
     .from('kyc_verifications')
     .select('*')
     .eq('e_number', enumber)
-    .eq('status', 'verified')
+    .not('credential_id', 'is', null)
     .single();
   if (error || !data) return null;
   return data;
