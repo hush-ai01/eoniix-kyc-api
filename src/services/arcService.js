@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { fireWebhook } from './webhookService.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -78,6 +79,19 @@ async function storeTransmission({ arcTransactionId, originatorCaspId, beneficia
 
 async function updateTransmissionStatus(arcTransactionId, status) {
   const update = { status };
+  const record = await getTransmission(arcTransactionId);
+  if (record) {
+    const { data: casp } = await supabase.from('casp_registry').select('webhook_url').eq('casp_id', record.originator_casp_id).single();
+    if (casp && casp.webhook_url) {
+      await fireWebhook(casp.webhook_url, 'arc.transmission.' + status, {
+        arcTransactionId,
+        status,
+        originatorCaspId: record.originator_casp_id,
+        beneficiaryCaspId: record.beneficiary_casp_id,
+        amountZar: record.amount_zar
+      });
+    }
+  }
   if (status === 'received') update.received_at = new Date().toISOString();
   const { error } = await supabase.from('travel_rule_records').update(update).eq('arc_transaction_id', arcTransactionId);
   if (error) throw new Error(`Failed to update status: ${error.message}`);

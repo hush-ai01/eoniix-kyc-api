@@ -36,7 +36,7 @@ router.post('/send', async (req, res) => {
 
     await storeTransmission({
       arcTransactionId,
-      originatorCaspId: req.body.originatorCaspId,
+      originatorCaspId: req.caspId || req.body.originatorCaspId,
       beneficiaryCaspId,
       originatorEnumber: originatorENumber,
       originatorWallet,
