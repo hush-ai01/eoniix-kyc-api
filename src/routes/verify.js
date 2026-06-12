@@ -116,7 +116,7 @@ router.post('/', authenticate, async (req, res, next) => {
       console.warn(`AML hit for eNumber ${eNumber}:`, amlResult.matches);
     }
 
-    // ── 7. Issue Polygon ID verifiable credential ────────────────────────────
+    // ── 7. Issue Solana Attestation Service credential ────────────────────────────
     const verificationId = uuidv4();
     const verifiedAt = new Date().toISOString();
 
@@ -166,7 +166,7 @@ export default router;
  * /v1/verify:
  *   post:
  *     summary: Verify a user's identity
- *     description: Orchestrates government ID verification, biometric liveness check, AML screening, and issues a portable Polygon ID credential.
+ *     description: Orchestrates government ID verification, biometric liveness check, AML screening, and issues a portable Sove identity credential on Solana.
  *     tags: [Verification]
  *     security:
  *       - ApiKeyAuth: []
