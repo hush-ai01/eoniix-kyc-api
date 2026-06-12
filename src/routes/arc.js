@@ -1,3 +1,166 @@
+
+/**
+ * @openapi
+ * /v1/arc/send:
+ *   post:
+ *     summary: Send a Travel Rule transmission
+ *     description: Initiates a FATF Travel Rule transmission between two CASPs. Automatically determines threshold based on ZAR amount.
+ *     tags: [Travel Rule]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [originatorENumber, originatorWallet, beneficiaryWallet, beneficiaryCaspId, amountZar]
+ *             properties:
+ *               originatorENumber:
+ *                 type: string
+ *                 example: ENT-000001
+ *               originatorWallet:
+ *                 type: string
+ *                 example: '0xabc123'
+ *               beneficiaryWallet:
+ *                 type: string
+ *                 example: '0xdef456'
+ *               beneficiaryCaspId:
+ *                 type: string
+ *                 example: casp_luno_za
+ *               amountZar:
+ *                 type: number
+ *                 example: 5000
+ *               chainTransactionRef:
+ *                 type: string
+ *                 example: 'tx_abc123'
+ *     responses:
+ *       200:
+ *         description: Transmission sent successfully
+ *       400:
+ *         description: Missing required fields
+ *       404:
+ *         description: User not verified or beneficiary CASP not found
+ */
+
+/**
+ * @openapi
+ * /v1/arc/receive:
+ *   post:
+ *     summary: Receive a Travel Rule transmission
+ *     description: Endpoint for beneficiary CASPs to receive incoming Travel Rule transmissions.
+ *     tags: [Travel Rule]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               arcTransactionId:
+ *                 type: string
+ *               encryptedPayload:
+ *                 type: string
+ *               signature:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Transmission received
+ *       400:
+ *         description: Missing required fields
+ */
+
+/**
+ * @openapi
+ * /v1/arc/status/{arcTransactionId}:
+ *   get:
+ *     summary: Get Travel Rule transmission status
+ *     description: Returns the current status and details of a Travel Rule transmission.
+ *     tags: [Travel Rule]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: arcTransactionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: arc_abc123
+ *     responses:
+ *       200:
+ *         description: Transmission status returned
+ *       404:
+ *         description: Transaction not found
+ */
+
+/**
+ * @openapi
+ * /v1/arc/casps/register:
+ *   post:
+ *     summary: Register a CASP on the Sove Arc network
+ *     description: Registers a new Virtual Asset Service Provider on the Sove Travel Rule network.
+ *     tags: [Travel Rule]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [caspId, caspName, endpointUrl, publicKey, country]
+ *             properties:
+ *               caspId:
+ *                 type: string
+ *                 example: casp_luno_za
+ *               caspName:
+ *                 type: string
+ *                 example: Luno South Africa
+ *               endpointUrl:
+ *                 type: string
+ *                 example: https://api.luno.com/sove/arc
+ *               publicKey:
+ *                 type: string
+ *               country:
+ *                 type: string
+ *                 example: ZA
+ *               fscaLicensed:
+ *                 type: boolean
+ *                 example: true
+ *               webhook_url:
+ *                 type: string
+ *                 example: https://api.luno.com/webhooks/sove
+ *     responses:
+ *       201:
+ *         description: CASP registered successfully
+ *       400:
+ *         description: Missing required fields
+ */
+
+/**
+ * @openapi
+ * /v1/arc/casps/lookup:
+ *   get:
+ *     summary: Lookup a CASP by wallet address
+ *     description: Find which CASP controls a given wallet address on the Sove Arc network.
+ *     tags: [Travel Rule]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: wallet
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: '0xabc123'
+ *     responses:
+ *       200:
+ *         description: CASP found
+ *       404:
+ *         description: CASP not found for wallet
+ */
 import express from 'express';
 import { authenticate, requireScope } from '../middleware/authenticate.js';
 import { v4 as uuidv4 } from 'uuid';

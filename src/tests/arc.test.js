@@ -8,7 +8,7 @@ const headers = {
   'x-api-key': API_KEY
 };
 
-const TEST_CASP_ID = 'casp_test_001';
+const TEST_CASP_ID = `casp_test_${Date.now()}`;
 
 describe('POST /v1/arc/casps/register', () => {
   it('registers a new CASP successfully', async () => {
