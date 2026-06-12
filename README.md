@@ -17,7 +17,7 @@ POST /v1/verify
     │                Biometric liveness check
     │                AML watchlist screening
     │
-    ├─ Polygon ID ── Issue W3C Verifiable Credential to DID
+    ├─ Solana Attestation Service ── Issue portable Sove identity credential on-chain
     │
     └─ Supabase ──── Store verification record
     │
@@ -38,7 +38,7 @@ cp .env.example .env
 Fill in your values:
 - Supabase URL and service key (from your existing project)
 - Dojah App ID and Private Key (from app.dojah.io → API Keys)
-- Polygon ID Issuer URL (your running issuer node)
+- Solana network and credential addresses (devnet for pilots, mainnet for production)
 - API Key Secret (generate any 32+ char random string)
 
 ### Step 3: Run the Supabase migration
@@ -98,7 +98,7 @@ This is why the service layer is abstracted — zero changes to routes.
 **Dojah sandbox:** All API calls in sandbox mode use test data.
 Get keys at https://app.dojah.io
 
-**Polygon ID:** Your issuer node must be running before credential issuance works.
+**Solana:** Set SOLANA_NETWORK, SOLANA_CREDENTIAL_ADDRESS, and SOLANA_SCHEMA_ADDRESS in your .env before credential issuance works.
 Don's eNumber-to-DID linking must be complete — the verify route will
 return a 404 for any eNumber without a mapped DID.
 
