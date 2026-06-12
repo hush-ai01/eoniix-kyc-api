@@ -10,7 +10,7 @@ export async function issueKYCCredential({ subjectDID, verificationData }) {
       credentialId,
       attestationAddress: `mock-attestation-${credentialId}`,
       network: process.env.SOLANA_NETWORK || 'devnet',
-      zkProofUrl: `https://attest.sove.placeholder/credentials/${credentialId}`
+      zkProofUrl: `https://attest.sove.africa/credentials/${credentialId}`
     };
   }
 
@@ -18,7 +18,7 @@ export async function issueKYCCredential({ subjectDID, verificationData }) {
     credentialId,
     attestationAddress: null,
     network: process.env.SOLANA_NETWORK,
-    zkProofUrl: `https://attest.sove.placeholder/credentials/${credentialId}`
+    zkProofUrl: `https://attest.sove.africa/credentials/${credentialId}`
   };
 }
 
@@ -28,7 +28,7 @@ export async function getCredentialStatus(credentialId) {
       credentialId,
       status: 'active',
       network: process.env.SOLANA_NETWORK || 'devnet',
-      zkProofUrl: `https://attest.sove.placeholder/credentials/${credentialId}`
+      zkProofUrl: `https://attest.sove.africa/credentials/${credentialId}`
     };
   }
 
@@ -36,6 +36,6 @@ export async function getCredentialStatus(credentialId) {
     credentialId,
     status: 'active',
     network: process.env.SOLANA_NETWORK,
-    zkProofUrl: `https://attest.sove.placeholder/credentials/${credentialId}`
+    zkProofUrl: `https://attest.sove.africa/credentials/${credentialId}`
   };
 }
