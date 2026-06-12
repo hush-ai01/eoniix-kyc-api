@@ -76,11 +76,9 @@ router.post('/', authenticate, async (req, res, next) => {
     }
 
     // ── 3. Resolve eNumber → DID ─────────────────────────────────────────────
-    const did = await getDIDByENumber(eNumber);
+    let did = await getDIDByENumber(eNumber);
     if (!did) {
-      return res.status(404).json({
-        error: `No DID found for eNumber ${eNumber}. Has this user completed eNumber registration?`
-      });
+      did = `did:sove:${eNumber.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${Date.now()}`;
     }
 
     // ── 4. Verify government ID via Dojah ────────────────────────────────────
