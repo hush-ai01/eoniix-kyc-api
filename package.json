@@ -1,7 +1,7 @@
 {
   "name": "sove-arc",
   "version": "0.1.0",
-  "description": "Eoniix KYC API — Web3-native identity verification with on-chain credential output",
+  "description": "Sove Identity API — Web3-native KYC verification with portable on-chain credentials",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

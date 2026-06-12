@@ -1,4 +1,4 @@
-# Eoniix KYC API
+# Sove Identity API
 
 Web3-native identity verification with on-chain verifiable credential output.
 Built for African fintechs, crypto exchanges, and nano banks.
