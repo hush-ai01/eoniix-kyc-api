@@ -1,4 +1,4 @@
-const SOVE_API_BASE = 'https://eoniix-kyc-api.onrender.com';
+const SOVE_API_BASE = 'https://api.sove.africa';
 
 export class SoveArc {
   constructor({ apiKey, baseUrl = SOVE_API_BASE } = {}) {

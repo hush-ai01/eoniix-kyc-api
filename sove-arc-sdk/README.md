@@ -90,7 +90,7 @@ This is handled server-side. No configuration needed.
 
 ## Base URL
 
-Production: `https://eoniix-kyc-api.onrender.com`
+Production: `https://api.sove.africa`
 
 To use a custom base URL (staging, local):
 
