@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
-const BASE_URL = 'https://eoniix-kyc-api.onrender.com';
-const API_KEY = 'eoniix-test-key-123';
+const BASE_URL = 'https://sove-arc.onrender.com';
+const API_KEY = 'sove-test-key-123';
 
 const headers = {
   'Content-Type': 'application/json',

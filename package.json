@@ -1,5 +1,5 @@
 {
-  "name": "eoniix-kyc-api",
+  "name": "sove-arc",
   "version": "0.1.0",
   "description": "Eoniix KYC API — Web3-native identity verification with on-chain credential output",
   "main": "src/index.js",

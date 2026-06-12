@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
 const BASE_URL = 'https://api.sove.africa';
-const API_KEY = 'eoniix-test-key-123';
+const API_KEY = 'sove-test-key-123';
 const headers = {
   'Content-Type': 'application/json',
   'x-api-key': API_KEY
