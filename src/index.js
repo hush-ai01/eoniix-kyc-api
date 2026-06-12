@@ -14,6 +14,7 @@ import { rateLimitPerKey } from './middleware/rateLimitPerKey.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import arcRouter from './routes/arc.js';
+import adminRouter from './routes/admin.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,6 +38,8 @@ app.use('/v1', rateLimitPerKey);
 app.use('/v1/verify', verifyRouter);
 app.use('/v1/credential', credentialRouter);
 app.use('/v1/arc', arcRouter);
+app.use('/v1/admin', adminRouter);
+
 app.get('/', (req, res) => {
   res.json({
     name: 'Sove Identity API',
@@ -44,7 +47,7 @@ app.get('/', (req, res) => {
     description: 'Web3-native KYC verification with portable on-chain credentials. Built for African fintechs.',
     docs: '/docs',
     health: '/health',
-    contact: 'hello@sove.io'
+    contact: 'hello@sove.africa'
   });
 });
 
@@ -56,8 +59,6 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   logger.info('Sove Identity API running on port ' + PORT);
-  
-  
 });
 
 export default app;
