@@ -60,7 +60,7 @@ curl http://localhost:3000/health
 ```bash
 curl -X POST http://localhost:3000/v1/verify \
   -H "Content-Type: application/json" \
-  -H "x-api-key: your-api-key-secret" \
+  -H "x-api-key: YOUR_API_KEY" \
   -d '{
     "eNumber": "EN-TEST-001",
     "country": "NG",
