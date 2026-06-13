@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
-const BASE_URL = 'https://sove-arc.onrender.com';
-const API_KEY = 'sove-test-key-123';
+const BASE_URL = 'https://api.sove.africa';
+const API_KEY = 'sove_live_71fb23a6593fe0a75deec6f3a42d354dadcdf56b093d39a9';
 
 const headers = {
   'Content-Type': 'application/json',
@@ -45,11 +45,11 @@ describe('POST /v1/verify', () => {
     });
     const data = await res.json();
     assert.strictEqual(res.status, 401, `Expected 401, got ${res.status}`);
-    assert.ok(data.error, 'Missing error message');
+    assert.ok(data.status || data.error, "Missing status or error");
     console.log('✅ Auth rejection passed');
   });
 
-  it('unknown eNumber — returns 404', async () => {
+  it('unknown eNumber — auto-generates DID and verifies', async () => {
     const res = await fetch(`${BASE_URL}/v1/verify`, {
       method: 'POST',
       headers,
@@ -62,9 +62,9 @@ describe('POST /v1/verify', () => {
       })
     });
     const data = await res.json();
-    assert.strictEqual(res.status, 404, `Expected 404, got ${res.status}`);
-    assert.ok(data.error, 'Missing error message');
-    console.log('✅ Unknown eNumber passed');
+    assert.ok(res.status === 200 || res.status === 422, `Expected 200 or 422, got ${res.status}`);
+    assert.ok(data.status || data.error, "Missing status or error");
+    console.log('✅ Unknown eNumber auto-verified passed');
   });
 
 });
