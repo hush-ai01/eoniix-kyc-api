@@ -13,7 +13,7 @@ export function detectAttacks(req, res, next) {
   
   for (const pattern of suspiciousPatterns) {
     if (pattern.test(data)) {
-      console.error("PATTERN:", pattern.toString(), "DATA:", data.substring(0,200)); logger.error('⚠️ SUSPICIOUS ACTIVITY DETECTED', {
+      logger.error('⚠️ SUSPICIOUS ACTIVITY DETECTED', {
         ip: req.ip,
         path: req.path,
         pattern: pattern.toString(),
