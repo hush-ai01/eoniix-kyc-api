@@ -1,3 +1,5 @@
+import { validateApiKey, securityHeaders, secureCors, rateLimiter, sanitiseData, maskLogs } from "./middleware/security.js";
+import { blockIPs, detectAttacks } from "./middleware/attackDetection.js";
 import 'dotenv/config';
 import express from 'express';
 import helmet from 'helmet';
@@ -10,13 +12,28 @@ import healthRouter from './routes/health.js';
 import logger from './utils/logger.js';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger.js';
+import { adminOnly, maskInternalData } from './middleware/adminAuth.js';
+import adminRouter from './routes/admin.js';
 import { rateLimitPerKey } from './middleware/rateLimitPerKey.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import arcRouter from './routes/arc.js';
-import adminRouter from './routes/admin.js';
 
 const app = express();
+
+// --- SECURITY LAYER --- 
+securityHeaders(app);
+secureCors(app);
+sanitiseData(app);
+maskLogs(app);
+app.use(blockIPs);
+app.use(detectAttacks);
+rateLimiter(app);
+app.use(validateApiKey);
+// --- END SECURITY ---;
+app.use(express.json({ limit: '10kb' })); // Prevent large payload attacks;
+
+// Auto-mask all responses for non-admin users
 const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
@@ -36,6 +53,7 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/health', healthRouter);
 app.use('/v1', rateLimitPerKey);
 app.use('/v1/verify', verifyRouter);
+app.use('/admin', adminOnly, adminRouter);
 app.use('/v1/credential', credentialRouter);
 app.use('/v1/arc', arcRouter);
 app.use('/v1/admin', adminRouter);
@@ -62,3 +80,21 @@ app.listen(PORT, () => {
 });
 
 export default app;
+
+// --- ADMIN ONLY ROUTES ---
+import { internalSwaggerSpec } from './admin/swaggerInternal.js';
+
+// Internal docs — https://sove.africa/admin/docs
+app.use('/admin/docs', adminOnly, swaggerUi.serve, swaggerUi.setup(internalSwaggerSpec));
+
+// Internal debug endpoint
+app.get('/admin/debug/stack', adminOnly, (req, res) => {
+  res.json({
+    identity_provider: 'Dojah',
+    credential_layer: 'Solana Attestation Service',
+    database: 'Supabase',
+    compliance_engine: 'Sove ARC',
+    sdk_package: 'sove-identity-sdk',
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
