@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
 const BASE_URL = 'https://api.sove.africa';
-const API_KEY = 'sove_live_71fb23a6593fe0a75deec6f3a42d354dadcdf56b093d39a9';
+const API_KEY = process.env.TEST_API_KEY || 'sove_live_71fb23a6593fe0a75deec6f3a42d354dadcdf56b093d39a9';
 
 const headers = {
   'Content-Type': 'application/json',
