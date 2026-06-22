@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "test": "node --test src/tests/verify.test.js"
+    "test": "node --test src/tests/*.test.js"
   },
   "dependencies": {
     "@solana/codecs-core": "^5.5.1",

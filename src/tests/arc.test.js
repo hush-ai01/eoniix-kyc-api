@@ -1,20 +1,24 @@
 import { describe, it } from 'node:test';
-import assert from 'node:assert';
+import assert from 'node:assert/strict';
 
-const BASE_URL = 'https://api.sove.africa';
-const API_KEY = process.env.TEST_API_KEY || 'sove_live_71fb23a6593fe0a75deec6f3a42d354dadcdf56b093d39a9';
-const headers = {
-  'Content-Type': 'application/json',
-  'x-api-key': API_KEY
-};
+const BASE_URL = process.env.TEST_BASE_URL;
+const API_KEY = process.env.TEST_API_KEY;
+const liveIt = BASE_URL && API_KEY ? it : it.skip;
+
+function headers() {
+  return {
+    'Content-Type': 'application/json',
+    'x-api-key': API_KEY
+  };
+}
 
 const TEST_CASP_ID = `casp_test_${Date.now()}`;
 
-describe('POST /v1/arc/casps/register', () => {
-  it('registers a new CASP successfully', async () => {
+describe('POST /v1/arc/casps/register live checks', () => {
+  liveIt('registers a new CASP successfully', async () => {
     const res = await fetch(`${BASE_URL}/v1/arc/casps/register`, {
       method: 'POST',
-      headers,
+      headers: headers(),
       body: JSON.stringify({
         caspId: TEST_CASP_ID,
         caspName: 'Test Exchange ZA',
@@ -25,30 +29,30 @@ describe('POST /v1/arc/casps/register', () => {
       })
     });
     const data = await res.json();
-    assert.strictEqual(res.status, 201, `Expected 201, got ${res.status}: ${JSON.stringify(data)}`);
-    assert.strictEqual(data.status, 'registered', `Unexpected status: ${data.status}`);
+
+    assert.equal(res.status, 201, `Expected 201, got ${res.status}: ${JSON.stringify(data)}`);
+    assert.equal(data.status, 'registered');
     assert.ok(data.caspId, 'Missing caspId in response');
-    console.log('✅ CASP registration passed:', data.caspId);
   });
 
-  it('rejects registration with missing fields', async () => {
+  liveIt('rejects registration with missing fields', async () => {
     const res = await fetch(`${BASE_URL}/v1/arc/casps/register`, {
       method: 'POST',
-      headers,
+      headers: headers(),
       body: JSON.stringify({ caspId: 'incomplete_casp' })
     });
     const data = await res.json();
-    assert.strictEqual(res.status, 400, `Expected 400, got ${res.status}`);
+
+    assert.equal(res.status, 400, `Expected 400, got ${res.status}`);
     assert.ok(data.error, 'Missing error message');
-    console.log('✅ Missing fields rejection passed');
   });
 });
 
-describe('POST /v1/arc/send', () => {
-  it('rejects when beneficiary CASP not in registry', async () => {
+describe('POST /v1/arc/send live checks', () => {
+  liveIt('rejects when beneficiary CASP is not in registry', async () => {
     const res = await fetch(`${BASE_URL}/v1/arc/send`, {
       method: 'POST',
-      headers,
+      headers: headers(),
       body: JSON.stringify({
         originatorENumber: 'ENT-000001',
         originatorWallet: '0xOriginator123',
@@ -59,27 +63,27 @@ describe('POST /v1/arc/send', () => {
       })
     });
     const data = await res.json();
-    assert.strictEqual(res.status, 404, `Expected 404, got ${res.status}`);
+
+    assert.equal(res.status, 404, `Expected 404, got ${res.status}`);
     assert.ok(data.error, 'Missing error message');
-    console.log('✅ Unknown CASP rejection passed');
   });
 
-  it('rejects when required fields are missing', async () => {
+  liveIt('rejects when required fields are missing', async () => {
     const res = await fetch(`${BASE_URL}/v1/arc/send`, {
       method: 'POST',
-      headers,
+      headers: headers(),
       body: JSON.stringify({ originatorENumber: 'ENT-000001' })
     });
     const data = await res.json();
-    assert.strictEqual(res.status, 400, `Expected 400, got ${res.status}`);
+
+    assert.equal(res.status, 400, `Expected 400, got ${res.status}`);
     assert.ok(data.error, 'Missing error message');
-    console.log('✅ Missing fields rejection passed');
   });
 
-  it('rejects when originator eNumber is not verified', async () => {
+  liveIt('rejects when originator eNumber is not verified', async () => {
     const res = await fetch(`${BASE_URL}/v1/arc/send`, {
       method: 'POST',
-      headers,
+      headers: headers(),
       body: JSON.stringify({
         originatorENumber: 'ENT-999999',
         originatorWallet: '0xOriginator123',
@@ -90,49 +94,48 @@ describe('POST /v1/arc/send', () => {
       })
     });
     const data = await res.json();
-    assert.strictEqual(res.status, 404, `Expected 404, got ${res.status}`);
+
+    assert.equal(res.status, 404, `Expected 404, got ${res.status}`);
     assert.ok(data.error, 'Missing error message');
-    console.log('✅ Unverified originator rejection passed');
   });
 });
 
-describe('GET /v1/arc/status/:arcTransactionId', () => {
-  it('returns 404 for unknown transaction', async () => {
-    const res = await fetch(`${BASE_URL}/v1/arc/status/arc_nonexistent_123`, { headers });
+describe('GET /v1/arc/status/:arcTransactionId live checks', () => {
+  liveIt('returns 404 for unknown transaction', async () => {
+    const res = await fetch(`${BASE_URL}/v1/arc/status/arc_nonexistent_123`, { headers: headers() });
     const data = await res.json();
-    assert.strictEqual(res.status, 404, `Expected 404, got ${res.status}`);
+
+    assert.equal(res.status, 404, `Expected 404, got ${res.status}`);
     assert.ok(data.error, 'Missing error message');
-    console.log('✅ Unknown transaction 404 passed');
   });
 });
 
-describe('POST /v1/arc/receive', () => {
-  it('rejects when required fields are missing', async () => {
+describe('POST /v1/arc/receive live checks', () => {
+  liveIt('rejects when required fields are missing', async () => {
     const res = await fetch(`${BASE_URL}/v1/arc/receive`, {
       method: 'POST',
-      headers,
+      headers: headers(),
       body: JSON.stringify({ arcTransactionId: 'arc_test_123' })
     });
     const data = await res.json();
-    assert.strictEqual(res.status, 400, `Expected 400, got ${res.status}`);
+
+    assert.equal(res.status, 400, `Expected 400, got ${res.status}`);
     assert.ok(data.error, 'Missing error message');
-    console.log('✅ Missing status rejection passed');
   });
 });
 
-describe('GET /v1/arc/casps/lookup', () => {
-  it('returns 400 when wallet query param is missing', async () => {
-    const res = await fetch(`${BASE_URL}/v1/arc/casps/lookup`, { headers });
+describe('GET /v1/arc/casps/lookup live checks', () => {
+  liveIt('returns 400 when wallet query param is missing', async () => {
+    const res = await fetch(`${BASE_URL}/v1/arc/casps/lookup`, { headers: headers() });
     const data = await res.json();
-    assert.strictEqual(res.status, 400, `Expected 400, got ${res.status}`);
+
+    assert.equal(res.status, 400, `Expected 400, got ${res.status}`);
     assert.ok(data.error, 'Missing error message');
-    console.log('✅ Missing wallet param rejection passed');
   });
 
-  it('returns 404 for unknown wallet', async () => {
-    const res = await fetch(`${BASE_URL}/v1/arc/casps/lookup?wallet=0xUnknown999`, { headers });
-    const data = await res.json();
-    assert.strictEqual(res.status, 404, `Expected 404, got ${res.status}`);
-    console.log('✅ Unknown wallet 404 passed');
+  liveIt('returns 404 for unknown wallet', async () => {
+    const res = await fetch(`${BASE_URL}/v1/arc/casps/lookup?wallet=0xUnknown999`, { headers: headers() });
+
+    assert.equal(res.status, 404, `Expected 404, got ${res.status}`);
   });
 });

@@ -7,6 +7,10 @@ const supabase = createClient(
 );
 
 function hashKey(rawKey) {
+  if (!process.env.API_KEY_SECRET) {
+    throw new Error('API_KEY_SECRET is required for API key authentication.');
+  }
+
   return crypto
     .createHmac('sha256', process.env.API_KEY_SECRET)
     .update(rawKey)

@@ -1,6 +1,7 @@
 import express from 'express';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+import { requireAdminToken } from '../middleware/adminAuth.js';
 
 const router = express.Router();
 
@@ -10,6 +11,10 @@ const supabase = createClient(
 );
 
 function generateApiKey(prefix = 'sove') {
+  if (!process.env.API_KEY_SECRET) {
+    throw new Error('API_KEY_SECRET is required to generate API keys.');
+  }
+
   const raw = `${prefix}_${crypto.randomBytes(32).toString('hex')}`;
   const keyPrefix = raw.slice(0, 8);
   const hash = crypto
@@ -19,16 +24,8 @@ function generateApiKey(prefix = 'sove') {
   return { raw, keyPrefix, hash };
 }
 
-function adminAuth(req, res, next) {
-  const token = req.headers['x-admin-token'];
-  if (!token || token !== process.env.API_KEY_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized.' });
-  }
-  next();
-}
-
 // POST /admin/keys/generate
-router.post('/keys/generate', adminAuth, async (req, res) => {
+router.post('/keys/generate', requireAdminToken, async (req, res) => {
   try {
     const { businessName, caspId, scopes, expiresInDays } = req.body;
     if (!businessName) {
@@ -45,7 +42,6 @@ router.post('/keys/generate', adminAuth, async (req, res) => {
       .from('api_keys')
       .insert({
         business_name: businessName,
-        key: raw,
         key_prefix: keyPrefix,
         key_hash: hash,
         casp_id: caspId || null,
@@ -76,7 +72,7 @@ router.post('/keys/generate', adminAuth, async (req, res) => {
 });
 
 // GET /admin/keys
-router.get('/keys', adminAuth, async (req, res) => {
+router.get('/keys', requireAdminToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('api_keys')
@@ -92,7 +88,7 @@ router.get('/keys', adminAuth, async (req, res) => {
 });
 
 // DELETE /admin/keys/:id/revoke
-router.delete('/keys/:id/revoke', adminAuth, async (req, res) => {
+router.delete('/keys/:id/revoke', requireAdminToken, async (req, res) => {
   try {
     const { error } = await supabase
       .from('api_keys')
