@@ -38,7 +38,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { verifyGovernmentId, verifyBiometric, screenAML } from '../services/dojahService.js';
 import { getDIDByENumber, storeVerificationRecord, updateCredentialId, getExistingVerification } from '../services/supabaseService.js';
 import { issueKYCCredential } from '../services/solanaService.js';
-import { authenticate } from '../middleware/authenticate.js';
+import { authenticate, requireScope } from '../middleware/authenticate.js';
 
 const router = express.Router();
 
@@ -52,7 +52,7 @@ const verifySchema = Joi.object({
   idImageBase64:  Joi.string().optional()
 });
 
-router.post('/', authenticate, async (req, res, next) => {
+router.post('/', authenticate, requireScope('kyc:verify'), async (req, res, next) => {
   try {
     // ── 1. Validate input ────────────────────────────────────────────────────
     const { error, value } = verifySchema.validate(req.body);
@@ -76,9 +76,14 @@ router.post('/', authenticate, async (req, res, next) => {
     }
 
     // ── 3. Resolve eNumber → DID ─────────────────────────────────────────────
-    let did = await getDIDByENumber(eNumber);
+    const did = await getDIDByENumber(eNumber);
     if (!did) {
-      did = `did:sove:${eNumber.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${Date.now()}`;
+      return res.status(404).json({
+        status: 'failed',
+        reason: 'enumber_did_not_found',
+        eNumber,
+        error: 'No DID is linked to this eNumber. Link the eNumber to a DID before issuing a KYC credential.'
+      });
     }
 
     // ── 4. Verify government ID via Dojah ────────────────────────────────────

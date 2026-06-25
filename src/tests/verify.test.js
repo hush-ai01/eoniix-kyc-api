@@ -1,20 +1,22 @@
 import { describe, it } from 'node:test';
-import assert from 'node:assert';
+import assert from 'node:assert/strict';
 
-const BASE_URL = 'https://api.sove.africa';
-const API_KEY = process.env.TEST_API_KEY || 'sove_live_71fb23a6593fe0a75deec6f3a42d354dadcdf56b093d39a9';
+const BASE_URL = process.env.TEST_BASE_URL;
+const API_KEY = process.env.TEST_API_KEY;
+const liveIt = BASE_URL && API_KEY ? it : it.skip;
 
-const headers = {
-  'Content-Type': 'application/json',
-  'x-api-key': API_KEY
-};
+function headers(apiKey = API_KEY) {
+  return {
+    'Content-Type': 'application/json',
+    'x-api-key': apiKey
+  };
+}
 
-describe('POST /v1/verify', () => {
-
-  it('happy path — returns verified or already_verified for valid eNumber', async () => {
+describe('POST /v1/verify live checks', () => {
+  liveIt('returns verified or already_verified for a valid eNumber', async () => {
     const res = await fetch(`${BASE_URL}/v1/verify`, {
       method: 'POST',
-      headers,
+      headers: headers(),
       body: JSON.stringify({
         eNumber: 'ENT-000001',
         country: 'NG',
@@ -24,17 +26,17 @@ describe('POST /v1/verify', () => {
       })
     });
     const data = await res.json();
-    assert.strictEqual(res.status, 200, `Expected 200, got ${res.status}`);
+
+    assert.equal(res.status, 200, `Expected 200, got ${res.status}`);
     assert.ok(['verified', 'already_verified'].includes(data.status), `Unexpected status: ${data.status}`);
-    assert.ok(data.eNumber === 'ENT-000001', 'eNumber mismatch');
+    assert.equal(data.eNumber, 'ENT-000001');
     assert.ok(data.credentialId, 'Missing credentialId');
-    console.log('✅ Happy path passed:', data.status);
   });
 
-  it('failed auth — rejects invalid API key', async () => {
+  liveIt('rejects invalid API keys', async () => {
     const res = await fetch(`${BASE_URL}/v1/verify`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': 'invalid-key' },
+      headers: headers('invalid-key'),
       body: JSON.stringify({
         eNumber: 'ENT-000001',
         country: 'NG',
@@ -44,15 +46,15 @@ describe('POST /v1/verify', () => {
       })
     });
     const data = await res.json();
-    assert.strictEqual(res.status, 401, `Expected 401, got ${res.status}`);
-    assert.ok(data.status || data.error, "Missing status or error");
-    console.log('✅ Auth rejection passed');
+
+    assert.equal(res.status, 401, `Expected 401, got ${res.status}`);
+    assert.ok(data.status || data.error, 'Missing status or error');
   });
 
-  it('unknown eNumber — auto-generates DID and verifies', async () => {
+  liveIt('fails closed when an eNumber has no DID link', async () => {
     const res = await fetch(`${BASE_URL}/v1/verify`, {
       method: 'POST',
-      headers,
+      headers: headers(),
       body: JSON.stringify({
         eNumber: 'ENT-999999',
         country: 'NG',
@@ -62,9 +64,8 @@ describe('POST /v1/verify', () => {
       })
     });
     const data = await res.json();
-    assert.ok(res.status === 200 || res.status === 422, `Expected 200 or 422, got ${res.status}`);
-    assert.ok(data.status || data.error, "Missing status or error");
-    console.log('✅ Unknown eNumber auto-verified passed');
-  });
 
+    assert.equal(res.status, 404, `Expected 404, got ${res.status}`);
+    assert.equal(data.reason, 'enumber_did_not_found');
+  });
 });

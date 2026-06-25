@@ -1,17 +1,33 @@
+import crypto from 'crypto';
+
 import logger from '../utils/logger.js';
 
-// ✅ ONLY THESE KEYS CAN SEE INTERNAL INFRASTRUCTURE
-// Add/remove collaborator keys here whenever you want
-const ADMIN_KEYS = new Set([
-  'sove_admin_2026_001_ULTRA_SECRET', // YOUR MAIN ADMIN KEY
-  'dev_collab_john_002',               // Example: Developer 1
-  'dev_collab_sarah_003'               // Example: Developer 2
-  // ADD NEW COLLABORATORS HERE — REMOVE ANYTIME
-]);
+function adminKeys() {
+  return new Set(
+    (process.env.ADMIN_API_KEYS || '')
+      .split(',')
+      .map((key) => key.trim())
+      .filter(Boolean)
+  );
+}
+
+function safeEqual(left, right) {
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
+
+  if (leftBuffer.length !== rightBuffer.length) return false;
+  return crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
 
 export function isAdminKey(req) {
   const key = req.headers['x-api-key'];
-  return ADMIN_KEYS.has(key);
+  if (!key) return false;
+
+  for (const adminKey of adminKeys()) {
+    if (safeEqual(key, adminKey)) return true;
+  }
+
+  return false;
 }
 
 export function adminOnly(req, res, next) {
@@ -20,25 +36,40 @@ export function adminOnly(req, res, next) {
   return res.status(403).json({ success: false, message: 'Access denied' });
 }
 
-// ✅ MASK RESPONSE FOR NORMAL USERS, SHOW DETAILS FOR ADMINS
+export function requireAdminToken(req, res, next) {
+  const expectedToken = process.env.ADMIN_TOKEN;
+  const token = req.headers['x-admin-token'];
+
+  if (!expectedToken || !token || !safeEqual(token, expectedToken)) {
+    return res.status(401).json({ error: 'Unauthorized.' });
+  }
+
+  return next();
+}
+
 export function maskInternalData(req, res, next) {
   const originalJson = res.json;
-  res.json = function(data) {
-    // If NOT admin — REMOVE ALL INTERNAL TECH DETAILS
-    if (!isAdminKey(req)) {
-      // Rename fields
-      if (data.credentialId) data.identityId = data.credentialId; delete data.credentialId;
-      if (data.chain) delete data.chain;
-      if (data.network) delete data.network;
-      if (data.issuer) delete data.issuer;
-      if (data.schema) delete data.schema;
-      if (data.txSignature) delete data.txSignature;
-      if (data.isMock) delete data.isMock;
-      // Hide provider names
-      if (data.provider) delete data.provider;
-      if (data.rawResponse) delete data.rawResponse;
+
+  res.json = function jsonWithMaskedInternals(data) {
+    if (!isAdminKey(req) && data && typeof data === 'object') {
+      const masked = { ...data };
+      if (masked.credentialId) {
+        masked.identityId = masked.credentialId;
+        delete masked.credentialId;
+      }
+      delete masked.chain;
+      delete masked.network;
+      delete masked.issuer;
+      delete masked.schema;
+      delete masked.txSignature;
+      delete masked.isMock;
+      delete masked.provider;
+      delete masked.rawResponse;
+      return originalJson.call(this, masked);
     }
+
     return originalJson.call(this, data);
   };
-  next();
+
+  return next();
 }

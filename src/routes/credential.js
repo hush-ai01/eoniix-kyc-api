@@ -3,11 +3,11 @@
 
 import express from 'express';
 import { getCredentialStatus } from '../services/solanaService.js';
-import { authenticate } from '../middleware/authenticate.js';
+import { authenticate, requireScope } from '../middleware/authenticate.js';
 
 const router = express.Router();
 
-router.get('/:credentialId', authenticate, async (req, res, next) => {
+router.get('/:credentialId', authenticate, requireScope('kyc:read'), async (req, res, next) => {
   try {
     const { credentialId } = req.params;
     const status = await getCredentialStatus(credentialId);
