@@ -7,6 +7,8 @@ export async function issueKYCCredential({ subjectDID, verificationData }) {
 
   if (IS_MOCK) {
     return {
+    provider: "Sove",
+    credentialLayer: "Solana",
       credentialId,
       attestationAddress: `mock-attestation-${credentialId}`,
       network: process.env.SOLANA_NETWORK || 'devnet',
@@ -15,6 +17,8 @@ export async function issueKYCCredential({ subjectDID, verificationData }) {
   }
 
   return {
+    provider: "Sove",
+    credentialLayer: "Solana",
     credentialId,
     attestationAddress: null,
     network: process.env.SOLANA_NETWORK,
@@ -25,6 +29,8 @@ export async function issueKYCCredential({ subjectDID, verificationData }) {
 export async function getCredentialStatus(credentialId) {
   if (IS_MOCK) {
     return {
+    provider: "Sove",
+    credentialLayer: "Solana",
       credentialId,
       status: 'active',
       network: process.env.SOLANA_NETWORK || 'devnet',
@@ -33,6 +39,8 @@ export async function getCredentialStatus(credentialId) {
   }
 
   return {
+    provider: "Sove",
+    credentialLayer: "Solana",
     credentialId,
     status: 'active',
     network: process.env.SOLANA_NETWORK,

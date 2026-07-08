@@ -1,0 +1,24 @@
+{
+  "name": "sove-identity-sdk",
+  "version": "0.1.0",
+  "description": "Official Node.js SDK for Sove Identity & Travel Rule API",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc && rollup -c",
+    "test": "node example.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.1.0",
+    "rollup": "^4.0.0"
+  }
+}

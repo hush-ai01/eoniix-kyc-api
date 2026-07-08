@@ -24,6 +24,7 @@ const dojahClient = axios.create({
 export async function verifyGovernmentId({ country, idType, idNumber }) {
   if (IS_MOCK) {
     return {
+    provider: "Dojah",
       verified: true,
       data: {
         first_name: 'Test',
@@ -41,6 +42,7 @@ export async function verifyGovernmentId({ country, idType, idNumber }) {
   });
 
   return {
+    provider: "Dojah",
     verified: response.data?.entity !== null,
     data: response.data?.entity || null,
     provider: 'dojah',
@@ -51,6 +53,7 @@ export async function verifyGovernmentId({ country, idType, idNumber }) {
 export async function verifyBiometric({ selfieBase64, idImageBase64 }) {
   if (IS_MOCK) {
     return {
+    provider: "Dojah",
       verified: true,
       confidence: 99,
       livenessScore: 98,
@@ -67,6 +70,7 @@ export async function verifyBiometric({ selfieBase64, idImageBase64 }) {
   const response = await dojahClient.post('/api/v1/kyc/selfie', payload);
 
   return {
+    provider: "Dojah",
     verified: response.data?.entity?.selfie_verified === true,
     confidence: response.data?.entity?.confidence_value || 0,
     livenessScore: response.data?.entity?.liveness_score || 0,
@@ -78,6 +82,7 @@ export async function verifyBiometric({ selfieBase64, idImageBase64 }) {
 export async function screenAML({ firstName, lastName, dateOfBirth }) {
   if (IS_MOCK) {
     return {
+    provider: "Dojah",
       clear: true,
       matchStatus: 'no_match',
       matches: [],
@@ -95,6 +100,7 @@ export async function screenAML({ firstName, lastName, dateOfBirth }) {
   const entity = response.data?.entity;
 
   return {
+    provider: "Dojah",
     clear: entity?.match_status === 'no_match',
     matchStatus: entity?.match_status || 'unknown',
     matches: entity?.matches || [],
