@@ -49,7 +49,7 @@ const verifySchema = Joi.object({
   country:        Joi.string().min(2).max(2).uppercase().required(),
   idType:         Joi.string().valid('BVN', 'NIN', 'NATIONAL_ID', 'PASSPORT', 'DRIVERS_LICENSE').required(),
   idNumber:       Joi.string().required(),
-  selfieBase64:   Joi.string().required(),
+  selfieBase64:   Joi.string().optional(),
   idImageBase64:  Joi.string().optional()
 });
 
@@ -94,16 +94,17 @@ router.post('/', authenticate, async (req, res, next) => {
         eNumber
       });
     }
-
-    // ── 5. Biometric liveness check ──────────────────────────────────────────
-    const bioResult = await verifyBiometric({ selfieBase64, idImageBase64 });
-    if (!bioResult.verified) {
-      return res.status(422).json({
-        status: 'failed',
-        reason: 'biometric_check_failed',
-        eNumber,
-        confidence: bioResult.confidence
-      });
+    // ── 5. Biometric liveness check (optional in beta) ───────────────────────
+    if (selfieBase64) {
+      const bioResult = await verifyBiometric({ selfieBase64, idImageBase64 });
+      if (!bioResult.verified) {
+        return res.status(422).json({
+          status: 'failed',
+          reason: 'biometric_check_failed',
+          eNumber,
+          confidence: bioResult.confidence
+        });
+      }
     }
 
     // ── 6. AML screening ─────────────────────────────────────────────────────
