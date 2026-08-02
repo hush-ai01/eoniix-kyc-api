@@ -6,26 +6,46 @@ const router = express.Router();
 
 router.post('/generate', async (req, res, next) => {
   try {
-    const { businessName, tier = 'starter' } = req.body;
+    const { businessName, tier = 'starter', scopes = [], expiresInDays = 365 } = req.body;
 
     if (!businessName) {
       return res.status(400).json({ error: 'businessName is required.' });
     }
 
-    const apiKey = `en_${tier}_${crypto.randomBytes(24).toString('hex')}`;
+    if (!process.env.API_KEY_SECRET) {
+      return res.status(500).json({ error: 'Server misconfiguration: API_KEY_SECRET missing.' });
+    }
+
+    const rawKey = `en_${tier}_${crypto.randomBytes(24).toString('hex')}`;
+    const keyPrefix = rawKey.slice(0, 8);
+    const keyHash = crypto
+      .createHmac('sha256', process.env.API_KEY_SECRET)
+      .update(rawKey)
+      .digest('hex');
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 
     const { error } = await supabase.from('api_keys').insert({
-      key: apiKey,
+      key: rawKey,
+      key_prefix: keyPrefix,
+      key_hash: keyHash,
       business_name: businessName,
-      tier
+      tier,
+      status: 'active',
+      scopes,
+      expires_at: expiresAt.toISOString()
     });
 
-    console.error('SUPABASE ERROR:', JSON.stringify(error)); if (error) throw new Error(`Failed to create API key: ${error.message}`);
+    if (error) throw new Error(`Failed to create API key: ${error.message}`);
 
     res.status(201).json({
-      apiKey,
+      apiKey: rawKey,
+      keyPrefix,
       businessName,
       tier,
+      scopes,
+      expiresAt: expiresAt.toISOString(),
       message: 'Store this key securely. It will not be shown again.'
     });
   } catch (err) {
