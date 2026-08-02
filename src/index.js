@@ -12,6 +12,7 @@ import credentialRouter from './routes/credential.js';
 import healthRouter from './routes/health.js';
 import adminRouter from './routes/admin.js';
 import arcRouter from './routes/arc.js';
+import satmsRouter from './routes/satms.js';
 import logger from './utils/logger.js';
 import { swaggerSpec } from './swagger.js';
 import { adminOnly } from './middleware/adminAuth.js';
@@ -44,6 +45,7 @@ export function createApp() {
   app.use('/v1/identity', identityRouter);
   app.use('/v1/keys', keysRouter);
   app.use('/v1/arc', arcRouter);
+  app.use('/v1/satms', satmsRouter);
   app.use('/admin', adminOnly, adminRouter);
   app.use('/v1/admin', adminOnly, adminRouter);
 
