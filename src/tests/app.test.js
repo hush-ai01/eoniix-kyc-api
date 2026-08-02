@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 before(() => {
   process.env.NODE_ENV = 'test';
   process.env.SUPABASE_URL ||= 'http://127.0.0.1:54321';
-  process.env.SUPABASE_SERVICE_KEY ||= 'test-service-key';
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||= 'test-service-key';
   process.env.API_KEY_SECRET ||= 'test-api-key-secret';
   process.env.ADMIN_API_KEYS ||= 'admin_test_key';
   process.env.ADMIN_TOKEN ||= 'admin_test_token';
