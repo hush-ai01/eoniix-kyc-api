@@ -6,7 +6,7 @@
  * 2. Government ID verification (Dojah)
  * 3. Biometric liveness check (Dojah)
  * 4. AML screening (Dojah)
- * 5. Credential issuance (Solana Attestation Service)
+ * 5. Credential issuance (Polygon ID)
  * 6. Record storage (Supabase)
  *
  * Request body:
@@ -38,21 +38,22 @@ import { v4 as uuidv4 } from 'uuid';
 import { verifyGovernmentId, verifyBiometric, screenAML } from '../services/dojahService.js';
 import { getDIDByENumber, storeVerificationRecord, updateCredentialId, getExistingVerification } from '../services/supabaseService.js';
 import { issueKYCCredential } from '../services/solanaService.js';
-import { authenticate, requireScope } from '../middleware/authenticate.js';
+import { authenticate } from '../middleware/authenticate.js';
+import { getProvider } from '../services/providerRouter.js';
 
 const router = express.Router();
 
 // Input validation schema
 const verifySchema = Joi.object({
   eNumber:        Joi.string().required(),
-  country:        Joi.string().valid('NG', 'ZA', 'KE', 'GH', 'UG', 'ZM').required(),
+  country:        Joi.string().min(2).max(2).uppercase().required(),
   idType:         Joi.string().valid('BVN', 'NIN', 'NATIONAL_ID', 'PASSPORT', 'DRIVERS_LICENSE').required(),
   idNumber:       Joi.string().required(),
-  selfieBase64:   Joi.string().optional(),
+  selfieBase64:   Joi.string().required(),
   idImageBase64:  Joi.string().optional()
 });
 
-router.post('/', authenticate, requireScope('kyc:verify'), async (req, res, next) => {
+router.post('/', authenticate, async (req, res, next) => {
   try {
     // ── 1. Validate input ────────────────────────────────────────────────────
     const { error, value } = verifySchema.validate(req.body);
@@ -61,6 +62,7 @@ router.post('/', authenticate, requireScope('kyc:verify'), async (req, res, next
     }
 
     const { eNumber, country, idType, idNumber, selfieBase64, idImageBase64 } = value;
+    const provider = getProvider(country);
 
     // ── 2. Check for existing verification (avoid duplicate charges) ─────────
     const existing = await getExistingVerification(eNumber);
@@ -79,10 +81,7 @@ router.post('/', authenticate, requireScope('kyc:verify'), async (req, res, next
     const did = await getDIDByENumber(eNumber);
     if (!did) {
       return res.status(404).json({
-        status: 'failed',
-        reason: 'enumber_did_not_found',
-        eNumber,
-        error: 'No DID is linked to this eNumber. Link the eNumber to a DID before issuing a KYC credential.'
+        error: `No DID found for eNumber ${eNumber}. Has this user completed eNumber registration?`
       });
     }
 
@@ -95,18 +94,18 @@ router.post('/', authenticate, requireScope('kyc:verify'), async (req, res, next
         eNumber
       });
     }
-    // ── 5. Biometric liveness check (optional in beta) ───────────────────────
-    if (selfieBase64) {
-      const bioResult = await verifyBiometric({ selfieBase64, idImageBase64 });
-      if (!bioResult.verified) {
-        return res.status(422).json({
-          status: 'failed',
-          reason: 'biometric_check_failed',
-          eNumber,
-          confidence: bioResult.confidence
-        });
-      }
+
+    // ── 5. Biometric liveness check ──────────────────────────────────────────
+    const bioResult = await verifyBiometric({ selfieBase64, idImageBase64 });
+    if (!bioResult.verified) {
+      return res.status(422).json({
+        status: 'failed',
+        reason: 'biometric_check_failed',
+        eNumber,
+        confidence: bioResult.confidence
+      });
     }
+
     // ── 6. AML screening ─────────────────────────────────────────────────────
     const amlResult = await screenAML({
       firstName: idResult.data?.first_name,
@@ -119,7 +118,7 @@ router.post('/', authenticate, requireScope('kyc:verify'), async (req, res, next
       console.warn(`AML hit for eNumber ${eNumber}:`, amlResult.matches);
     }
 
-    // ── 7. Issue Solana Attestation Service credential ────────────────────────────
+    // ── 7. Issue Polygon ID verifiable credential ────────────────────────────
     const verificationId = uuidv4();
     const verifiedAt = new Date().toISOString();
 
@@ -139,6 +138,7 @@ router.post('/', authenticate, requireScope('kyc:verify'), async (req, res, next
       country,
       idType,
       verifiedAt,
+      verificationLevel: 1,
       amlClear: amlResult.clear,
       credentialId
     });
@@ -163,41 +163,3 @@ router.post('/', authenticate, requireScope('kyc:verify'), async (req, res, next
 });
 
 export default router;
-
-/**
- * @openapi
- * /v1/verify:
- *   post:
- *     summary: Verify a user's identity
- *     description: Orchestrates government ID verification, biometric liveness check, AML screening, and issues a portable Sove identity credential on Solana.
- *     tags: [Verification]
- *     security:
- *       - ApiKeyAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/VerifyRequest'
- *     responses:
- *       200:
- *         description: User successfully verified
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/VerifyResponse'
- *       401:
- *         description: Invalid or missing API key
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: eNumber not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- */

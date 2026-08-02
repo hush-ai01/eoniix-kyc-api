@@ -6,6 +6,8 @@ import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 
 import verifyRouter from './routes/verify.js';
+import keysRouter from './routes/keys.js';
+import identityRouter from './routes/identity.js';
 import credentialRouter from './routes/credential.js';
 import healthRouter from './routes/health.js';
 import adminRouter from './routes/admin.js';
@@ -15,6 +17,7 @@ import { swaggerSpec } from './swagger.js';
 import { adminOnly } from './middleware/adminAuth.js';
 import { rateLimitPerKey } from './middleware/rateLimitPerKey.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { trackUsage } from './middleware/usageTracker.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { blockIPs, detectAttacks } from './middleware/attackDetection.js';
 
@@ -22,9 +25,7 @@ const PORT = process.env.PORT || 3000;
 
 export function createApp() {
   const app = express();
-
   app.set('trust proxy', 1);
-
   app.use(helmet());
   app.use(cors({
     origin: process.env.CORS_ORIGIN || true,
@@ -34,18 +35,14 @@ export function createApp() {
   app.use(requestLogger);
   app.use(blockIPs);
   app.use(detectAttacks);
-
-  app.use('/v1', rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
-    message: { error: 'Too many requests. Please try again later.' }
-  }));
-
+  app.use(trackUsage);
+  app.use('/v1', rateLimitPerKey);
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   app.use('/health', healthRouter);
-  app.use('/v1', rateLimitPerKey);
   app.use('/v1/verify', verifyRouter);
   app.use('/v1/credential', credentialRouter);
+  app.use('/v1/identity', identityRouter);
+  app.use('/v1/keys', keysRouter);
   app.use('/v1/arc', arcRouter);
   app.use('/admin', adminOnly, adminRouter);
   app.use('/v1/admin', adminOnly, adminRouter);
