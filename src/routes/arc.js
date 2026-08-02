@@ -264,11 +264,11 @@ router.get('/status/:arcTransactionId', async (req, res) => {
 // POST /v1/arc/casps/register
 router.post('/casps/register', async (req, res) => {
   try {
-    const { caspId, caspName, endpointUrl, publicKey, country, fscaLicensed } = req.body;
+    const { caspId, caspName, endpointUrl, publicKey, country, fscaLicensed, walletAddresses } = req.body;
     if (!caspId || !caspName || !endpointUrl || !publicKey || !country) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-    const casp = await registerCasp({ caspId, caspName, endpointUrl, publicKey, country, fscaLicensed });
+    const casp = await registerCasp({ caspId, caspName, endpointUrl, publicKey, country, fscaLicensed, walletAddresses });
     return res.status(201).json({ status: 'registered', caspId: casp.casp_id });
   } catch (err) {
     console.error('arc/casps/register error:', err);

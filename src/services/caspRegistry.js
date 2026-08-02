@@ -20,12 +20,14 @@ async function getCaspByWallet(walletAddress) {
   const { data, error } = await supabase
     .from('casp_registry')
     .select('*')
-    .eq('active', true);
+    .contains('wallet_addresses', [walletAddress])
+    .eq('active', true)
+    .single();
   if (error || !data) return null;
-  return null;
+  return data;
 }
 
-async function registerCasp({ caspId, caspName, endpointUrl, publicKey, country, fscaLicensed }) {
+async function registerCasp({ caspId, caspName, endpointUrl, publicKey, country, fscaLicensed, walletAddresses }) {
   const { data, error } = await supabase
     .from('casp_registry')
     .insert({
@@ -35,6 +37,7 @@ async function registerCasp({ caspId, caspName, endpointUrl, publicKey, country,
       public_key: publicKey,
       country: country.toUpperCase(),
       fsca_licensed: fscaLicensed || false,
+      wallet_addresses: walletAddresses || [],
       active: false
     })
     .select()
