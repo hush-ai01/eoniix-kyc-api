@@ -11,7 +11,8 @@ import identityRouter from './routes/identity.js';
 import credentialRouter from './routes/credential.js';
 import healthRouter from './routes/health.js';
 import adminRouter from './routes/admin.js';
-import arcRouter from './routes/arc.js';
+import { buildArcRouter } from './lib/arcRouter.js';
+import { supabase } from './services/supabaseService.js';
 import satmsRouter from './routes/satms.js';
 import logger from './utils/logger.js';
 import { swaggerSpec } from './swagger.js';
@@ -44,7 +45,7 @@ export function createApp() {
   app.use('/v1/credential', credentialRouter);
   app.use('/v1/identity', identityRouter);
   app.use('/v1/keys', keysRouter);
-  app.use('/v1/arc', arcRouter);
+  app.use('/v1/arc', buildArcRouter(supabase));
   app.use('/v1/satms', satmsRouter);
   app.use('/admin', adminOnly, adminRouter);
   app.use('/v1/admin', adminOnly, adminRouter);
