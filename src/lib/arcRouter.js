@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import { idempotencyMiddleware } from './idempotency.js';
 import { createAuditLogger, hashPayload } from './auditLog.js';
 
@@ -7,7 +8,14 @@ export function buildArcRouter(supabase) {
   const auditLog = createAuditLogger(supabase);
 
   router.post('/send', idempotencyMiddleware(supabase, 'arc.send'), async (req, res) => {
-    const { senderCasp, receiverCasp, payload } = req.body;
+    const { receiverCasp, payload } = req.body;
+    if (!req.caspId) {
+      return res.status(403).json({ error: 'forbidden', message: 'API key is not bound to a CASP.' });
+    }
+    if (req.body.senderCasp && req.body.senderCasp !== req.caspId) {
+      return res.status(403).json({ error: 'forbidden', message: 'senderCasp does not match authenticated CASP.' });
+    }
+    const senderCasp = req.caspId;
     if (!senderCasp || !receiverCasp || !payload) {
       const body = { error: 'invalid_request', message: 'senderCasp, receiverCasp, and payload are required.' };
       await res.recordIdempotentFailure?.();
@@ -22,7 +30,7 @@ export function buildArcRouter(supabase) {
 
       await auditLog.logEvent({ transmissionId: transmission.id, eventType: 'send_initiated', senderCasp, receiverCasp, payload, status: 'pending', idempotencyKey: req.idempotencyKey });
 
-      const deliveryResult = await attemptDelivery(receiverCasp, payload);
+      const deliveryResult = await attemptDelivery(receiverCasp, payload, supabase);
 
       if (deliveryResult.success) {
         await auditLog.upsertTransmissionStatus(transmission.id, { current_status: 'delivered' });
@@ -44,7 +52,14 @@ export function buildArcRouter(supabase) {
   });
 
   router.post('/receive', idempotencyMiddleware(supabase, 'arc.receive'), async (req, res) => {
-    const { senderCasp, receiverCasp, payload } = req.body;
+    const { receiverCasp, payload } = req.body;
+    if (!req.caspId) {
+      return res.status(403).json({ error: 'forbidden', message: 'API key is not bound to a CASP.' });
+    }
+    if (req.body.senderCasp && req.body.senderCasp !== req.caspId) {
+      return res.status(403).json({ error: 'forbidden', message: 'senderCasp does not match authenticated CASP.' });
+    }
+    const senderCasp = req.caspId;
     if (!senderCasp || !receiverCasp || !payload) {
       await res.recordIdempotentFailure?.();
       return res.status(400).json({ error: 'invalid_request', message: 'senderCasp, receiverCasp, and payload are required.' });
@@ -99,10 +114,64 @@ export function buildArcRouter(supabase) {
   return router;
 }
 
-async function attemptDelivery(receiverCasp, payload) {
-  return { success: true };
+async function attemptDelivery(receiverCasp, payload, supabase) {
+  try {
+    const { data: casp, error } = await supabase
+      .from('casp_registry')
+      .select('endpoint_url')
+      .eq('casp_id', receiverCasp)
+      .eq('active', true)
+      .single();
+
+    if (error || !casp || !casp.endpoint_url) {
+      return { success: false, reason: 'Receiver CASP not found or not active.' };
+    }
+
+    const body = JSON.stringify(payload);
+    const signature = crypto
+      .createHmac('sha256', process.env.API_KEY_SECRET)
+      .update(body)
+      .digest('hex');
+
+    const res = await fetch(casp.endpoint_url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Sove-Signature': `sha256=${signature}`
+      },
+      body,
+      signal: AbortSignal.timeout(10000)
+    });
+
+    if (!res.ok) {
+      return { success: false, reason: `Receiver responded with status ${res.status}` };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { success: false, reason: err.message };
+  }
 }
 
 async function validateIncomingPayload(payload) {
+  if (!payload || typeof payload !== 'object') return false;
+
+  const requiredBase = ['originatorFullName', 'originatorWallet', 'beneficiaryWallet', 'amountZar', 'threshold'];
+  for (const field of requiredBase) {
+    if (payload[field] === undefined || payload[field] === null || payload[field] === '') {
+      return false;
+    }
+  }
+
+  if (typeof payload.originatorFullName !== 'string' || payload.originatorFullName.trim().length < 2) return false;
+  if (typeof payload.originatorWallet !== 'string' || payload.originatorWallet.length < 10) return false;
+  if (typeof payload.beneficiaryWallet !== 'string' || payload.beneficiaryWallet.length < 10) return false;
+  if (typeof payload.amountZar !== 'number' || payload.amountZar <= 0) return false;
+  if (!['full', 'reduced'].includes(payload.threshold)) return false;
+
+  if (payload.threshold === 'full' && (!payload.soveVerificationId || typeof payload.soveVerificationId !== 'string')) {
+    return false;
+  }
+
   return true;
 }

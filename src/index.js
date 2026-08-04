@@ -12,7 +12,9 @@ import credentialRouter from './routes/credential.js';
 import healthRouter from './routes/health.js';
 import adminRouter from './routes/admin.js';
 import { buildArcRouter } from './lib/arcRouter.js';
+import { authenticate } from './middleware/authenticate.js';
 import { supabase } from './services/supabaseService.js';
+import { startRetryDispatcher } from './services/retryDispatcher.js';
 import satmsRouter from './routes/satms.js';
 import logger from './utils/logger.js';
 import { swaggerSpec } from './swagger.js';
@@ -30,7 +32,7 @@ export function createApp() {
   app.set('trust proxy', 1);
   app.use(helmet());
   app.use(cors({
-    origin: process.env.CORS_ORIGIN || true,
+    origin: (origin, cb) => { const allowed = (process.env.CORS_ORIGIN || "").split(",").map(o => o.trim()).filter(Boolean); if (!origin || allowed.length === 0 || allowed.includes(origin)) return cb(null, true); return cb(new Error("Not allowed by CORS")); },
     credentials: true
   }));
   app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '10kb' }));
@@ -45,7 +47,7 @@ export function createApp() {
   app.use('/v1/credential', credentialRouter);
   app.use('/v1/identity', identityRouter);
   app.use('/v1/keys', keysRouter);
-  app.use('/v1/arc', buildArcRouter(supabase));
+  app.use('/v1/arc', authenticate, buildArcRouter(supabase));
   app.use('/v1/satms', satmsRouter);
   app.use('/admin', adminOnly, adminRouter);
   app.use('/v1/admin', adminOnly, adminRouter);
@@ -86,6 +88,7 @@ const app = createApp();
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
     logger.info('Sove Identity API running on port ' + PORT);
+    startRetryDispatcher(supabase);
   });
 }
 

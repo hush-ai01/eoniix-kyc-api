@@ -162,6 +162,8 @@
  *         description: CASP not found for wallet
  */
 import express from 'express';
+import { registerRateLimit } from '../middleware/registerRateLimit.js';
+import { validateCaspRegistration } from '../middleware/validateCaspRegistration.js';
 import { authenticate, requireScope } from '../middleware/authenticate.js';
 import { v4 as uuidv4 } from 'uuid';
 const router = express.Router();
@@ -199,7 +201,15 @@ router.post('/send', async (req, res) => {
 
     await storeTransmission({
       arcTransactionId,
-      originatorCaspId: req.caspId || req.body.originatorCaspId,
+      originatorCaspId: (() => {
+        if (!req.caspId) {
+          throw Object.assign(new Error('API key is not bound to a CASP. Cannot originate transmissions.'), { statusCode: 403 });
+        }
+        if (req.body.originatorCaspId && req.body.originatorCaspId !== req.caspId) {
+          throw Object.assign(new Error('originatorCaspId does not match authenticated CASP.'), { statusCode: 403 });
+        }
+        return req.caspId;
+      })(),
       beneficiaryCaspId,
       originatorEnumber: originatorENumber,
       originatorWallet,
@@ -219,7 +229,7 @@ router.post('/send', async (req, res) => {
 
   } catch (err) {
     console.error('arc/send error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(err.statusCode || 500).json({ error: err.message || 'Internal server error' });
   }
 });
 
@@ -234,7 +244,7 @@ router.post('/receive', async (req, res) => {
     return res.status(200).json({ status: 'received', receivedAt: new Date().toISOString() });
   } catch (err) {
     console.error('arc/receive error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(err.statusCode || 500).json({ error: err.message || 'Internal server error' });
   }
 });
 
@@ -257,12 +267,12 @@ router.get('/status/:arcTransactionId', async (req, res) => {
     });
   } catch (err) {
     console.error('arc/status error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(err.statusCode || 500).json({ error: err.message || 'Internal server error' });
   }
 });
 
 // POST /v1/arc/casps/register
-router.post('/casps/register', async (req, res) => {
+router.post('/casps/register', registerRateLimit, validateCaspRegistration, async (req, res) => {
   try {
     const { caspId, caspName, endpointUrl, publicKey, country, fscaLicensed, walletAddresses } = req.body;
     if (!caspId || !caspName || !endpointUrl || !publicKey || !country) {
@@ -272,7 +282,7 @@ router.post('/casps/register', async (req, res) => {
     return res.status(201).json({ status: 'registered', caspId: casp.casp_id });
   } catch (err) {
     console.error('arc/casps/register error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(err.statusCode || 500).json({ error: err.message || 'Internal server error' });
   }
 });
 
@@ -286,7 +296,7 @@ router.get('/casps/lookup', async (req, res) => {
     return res.status(200).json({ found: true, caspId: casp.casp_id, caspName: casp.casp_name, country: casp.country });
   } catch (err) {
     console.error('arc/casps/lookup error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(err.statusCode || 500).json({ error: err.message || 'Internal server error' });
   }
 });
 
