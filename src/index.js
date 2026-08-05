@@ -42,7 +42,7 @@ export function createApp() {
   app.use(detectAttacks);
   app.use(trackUsage);
   app.use('/v1', rateLimitPerKey);
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  if (process.env.NODE_ENV !== 'production') { app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec)); } else { app.use('/docs', adminOnly, swaggerUi.serve, swaggerUi.setup(swaggerSpec)); }
   app.use('/health', healthRouter);
   app.use('/v1/verify', verifyRouter);
   app.use('/v1/credential', credentialRouter);
