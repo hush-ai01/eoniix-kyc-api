@@ -16,6 +16,7 @@ import { authenticate } from './middleware/authenticate.js';
 import { supabase } from './services/supabaseService.js';
 import { startRetryDispatcher } from './services/retryDispatcher.js';
 import satmsRouter from './routes/satms.js';
+import arcRouter from './routes/arc.js';
 import logger from './utils/logger.js';
 import { swaggerSpec } from './swagger.js';
 import { adminOnly } from './middleware/adminAuth.js';
@@ -47,7 +48,7 @@ export function createApp() {
   app.use('/v1/credential', credentialRouter);
   app.use('/v1/identity', identityRouter);
   app.use('/v1/keys', keysRouter);
-  app.use('/v1/arc', buildArcRouter(supabase));
+  app.use('/v1/arc', arcRouter);
   app.use('/v1/satms', satmsRouter);
   app.use('/admin', adminOnly, adminRouter);
   app.use('/v1/admin', adminOnly, adminRouter);
