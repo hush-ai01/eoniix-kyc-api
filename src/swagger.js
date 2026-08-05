@@ -13,8 +13,8 @@ const options = {
       }
     },
     servers: [
-      { url: 'http://localhost:3000', description: 'Development' },
-      { url: 'https://api.sove.io', description: 'Production' }
+      
+      { url: 'https://api.sove.africa', description: 'Production' }
     ],
     components: {
       securitySchemes: {
