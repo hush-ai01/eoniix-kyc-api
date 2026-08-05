@@ -61,6 +61,16 @@ async function lookupVerifiedUser(enumber) {
 
 import { encryptField, decryptField } from './encryptionService.js';
 
+async function alertArcFailure(supabase, context, error) {
+  console.error(`[ARC FAILURE] ${context}: ${error.message}`);
+  await supabase.from('arc_failures').insert({
+    context,
+    error: error.message,
+    failed_at: new Date().toISOString()
+  }).catch(e => console.error('Failed to log arc failure:', e.message));
+}
+
+
 async function storeTransmission({ arcTransactionId, originatorCaspId, beneficiaryCaspId, originatorEnumber, originatorWallet, beneficiaryWallet, amountZar, chainTransactionRef, payloadHash, threshold }) {
   const { error } = await supabase.from('travel_rule_records').insert({
     arc_transaction_id: arcTransactionId,
@@ -76,7 +86,7 @@ async function storeTransmission({ arcTransactionId, originatorCaspId, beneficia
     status: 'sent',
     transmitted_at: new Date().toISOString()
   });
-  if (error) throw new Error(`Failed to store transmission: ${error.message}`);
+  if (error) await alertArcFailure(supabase, 'store_transmission', error); throw new Error(`Failed to store transmission: ${error.message}`);
 }
 
 async function updateTransmissionStatus(arcTransactionId, status) {
@@ -104,7 +114,7 @@ async function updateTransmissionStatus(arcTransactionId, status) {
   }
   if (status === 'received') update.received_at = new Date().toISOString();
   const { error } = await supabase.from('travel_rule_records').update(update).eq('arc_transaction_id', arcTransactionId);
-  if (error) throw new Error(`Failed to update status: ${error.message}`);
+  if (error) await alertArcFailure(supabase, 'update_status', error); throw new Error(`Failed to update status: ${error.message}`);
 }
 
 async function getTransmission(arcTransactionId) {
