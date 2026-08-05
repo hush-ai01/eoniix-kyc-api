@@ -47,7 +47,7 @@ export function createApp() {
   app.use('/v1/credential', credentialRouter);
   app.use('/v1/identity', identityRouter);
   app.use('/v1/keys', keysRouter);
-  app.use('/v1/arc', authenticate, buildArcRouter(supabase));
+  app.use('/v1/arc', buildArcRouter(supabase));
   app.use('/v1/satms', satmsRouter);
   app.use('/admin', adminOnly, adminRouter);
   app.use('/v1/admin', adminOnly, adminRouter);
