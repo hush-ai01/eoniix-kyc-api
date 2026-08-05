@@ -167,14 +167,14 @@ import { validateCaspRegistration } from '../middleware/validateCaspRegistration
 import { authenticate, requireScope } from '../middleware/authenticate.js';
 import { v4 as uuidv4 } from 'uuid';
 const router = express.Router();
-router.use(authenticate);
+
 
 import { determineThreshold, buildPayload, hashPayload, encryptPayload, signPayload, lookupVerifiedUser, storeTransmission, updateTransmissionStatus, getTransmission } from '../services/arcService.js';
 
 import { getCaspById, getCaspByWallet, registerCasp } from '../services/caspRegistry.js';
 
 // POST /v1/arc/send
-router.post('/send', async (req, res) => {
+router.post('/send', authenticate, async (req, res) => {
   try {
     const { originatorENumber, originatorWallet, beneficiaryWallet, beneficiaryCaspId, amountZar, chainTransactionRef, originatorCaspId } = req.body;
 
@@ -234,7 +234,7 @@ router.post('/send', async (req, res) => {
 });
 
 // POST /v1/arc/receive
-router.post('/receive', async (req, res) => {
+router.post('/receive', authenticate, async (req, res) => {
   try {
     const { arcTransactionId, status } = req.body;
     if (!arcTransactionId || !status) {
@@ -249,7 +249,7 @@ router.post('/receive', async (req, res) => {
 });
 
 // GET /v1/arc/status/:arcTransactionId
-router.get('/status/:arcTransactionId', async (req, res) => {
+router.get('/status/:arcTransactionId', authenticate, async (req, res) => {
   try {
     const record = await getTransmission(req.params.arcTransactionId);
     if (!record) {
