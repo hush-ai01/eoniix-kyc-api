@@ -34,7 +34,7 @@ export function createApp() {
   app.use(helmet());
   app.use(cors({
     origin: (origin, cb) => { const allowed = (process.env.CORS_ORIGIN || "").split(",").map(o => o.trim()).filter(Boolean); if (!origin || allowed.length === 0 || allowed.includes(origin)) return cb(null, true); return cb(new Error("Not allowed by CORS")); },
-    credentials: true
+    credentials: false
   }));
   app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '10kb' }));
   app.use(requestLogger);
