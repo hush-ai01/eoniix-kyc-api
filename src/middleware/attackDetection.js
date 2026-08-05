@@ -5,7 +5,7 @@ const suspiciousPatterns = [
   /(\$|\/\*|\*\/|SELECT|INSERT|DROP|UNION|OR\s+1=1)/i, // SQL/NoSQL
   /(<script|javascript:|onload=|onerror=)/i, // XSS
   /(\.\.\/|\/etc\/|\/proc\/|\/root\/)/i, // Path traversal
-  /(wget|bash|sh|nc|python|perl)/i // Command injection
+  /\b(wget|bash|curl|nc|python|perl)\b/i // Command injection
 ];
 
 export function detectAttacks(req, res, next) {

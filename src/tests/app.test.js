@@ -8,6 +8,7 @@ before(() => {
   process.env.API_KEY_SECRET ||= 'test-api-key-secret';
   process.env.ADMIN_API_KEYS ||= 'admin_test_key';
   process.env.ADMIN_TOKEN ||= 'admin_test_token';
+  process.env.RESEND_API_KEY ||= 're_test_key_placeholder';
 });
 
 async function withServer(app, run) {
