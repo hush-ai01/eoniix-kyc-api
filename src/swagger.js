@@ -9,7 +9,7 @@ const options = {
       description: 'Web3-native KYC verification with portable on-chain credentials. Built for African fintechs.',
       contact: {
         name: 'Sove Support',
-        email: 'hello@sove.io'
+        email: 'hello@sove.africa'
       }
     },
     servers: [
@@ -44,7 +44,7 @@ const options = {
             eNumber: { type: 'string', example: 'ENT-000001' },
             verificationId: { type: 'string', example: 'd3621ab0-db7c-4576-8a47-afb1dcca4e2c' },
             credentialId: { type: 'string', example: 'cred-d1f21425-cdca-471d-b469-84c8f4fd00e5' },
-            zkProofUrl: { type: 'string', example: 'https://issuer.sove.io/credentials/cred-xxx/proof' },
+            zkProofUrl: { type: 'string', example: 'https://issuer.sove.africa/credentials/cred-xxx/proof' },
             amlClear: { type: 'boolean', example: true },
             verifiedAt: { type: 'string', format: 'date-time' }
           }
