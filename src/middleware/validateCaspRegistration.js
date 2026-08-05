@@ -36,7 +36,7 @@ export function validateCaspRegistration(req, res, next) {
   const result = caspRegistrationSchema.safeParse(req.body);
 
   if (!result.success) {
-    const errors = result.error.errors.map(e => ({
+    const errors = (result.error.errors || []).map(e => ({
       field: e.path.join('.'),
       message: e.message
     }));
