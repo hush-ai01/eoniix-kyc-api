@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 
 /**
  * @openapi
@@ -173,6 +174,46 @@ import { determineThreshold, buildPayload, hashPayload, encryptPayload, signPayl
 
 import { getCaspById, getCaspByWallet, registerCasp } from '../services/caspRegistry.js';
 
+
+// CASP mutual auth middleware
+async function verifyCaspSignature(req, res, next) {
+  try {
+    const signature = req.headers['x-sove-signature'];
+    const caspId = req.body?.originatorCaspId || req.body?.caspId;
+
+    if (!signature || !caspId) {
+      return res.status(401).json({ error: 'Missing CASP signature or caspId.' });
+    }
+
+    const { data: casp, error } = await supabase
+      .from('casp_registry')
+      .select('public_key')
+      .eq('casp_id', caspId)
+      .eq('status', 'active')
+      .single();
+
+    if (error || !casp) {
+      return res.status(401).json({ error: 'Unknown or inactive CASP.' });
+    }
+
+    const body = JSON.stringify(req.body);
+    const expected = crypto
+      .createHmac('sha256', casp.public_key)
+      .update(body)
+      .digest('hex');
+
+    const provided = signature.replace('sha256=', '');
+
+    if (provided !== expected) {
+      return res.status(401).json({ error: 'Invalid CASP signature.' });
+    }
+
+    next();
+  } catch (err) {
+    return res.status(500).json({ error: 'Signature verification failed.' });
+  }
+}
+
 // POST /v1/arc/send
 router.post('/send', authenticate, async (req, res) => {
   try {
@@ -234,7 +275,7 @@ router.post('/send', authenticate, async (req, res) => {
 });
 
 // POST /v1/arc/receive
-router.post('/receive', authenticate, async (req, res) => {
+router.post('/receive', authenticate, verifyCaspSignature, async (req, res) => {
   try {
     const { arcTransactionId, status } = req.body;
     if (!arcTransactionId || !status) {
