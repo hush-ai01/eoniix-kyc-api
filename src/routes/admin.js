@@ -2,7 +2,7 @@ import express from 'express';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import { requireAdminToken } from '../middleware/adminAuth.js';
-import { sendCaspApprovalEmail } from '../services/emailService.js'; from '../middleware/adminAuth.js';
+import { sendCaspApprovalEmail } from '../services/emailService.js';
 
 const router = express.Router();
 
